@@ -2,7 +2,7 @@ package com.example.uol.pagamento.domain.service.impl;
 
 
 import com.example.uol.pagamento.controller.dto.ItemPagamentoDTO;
-import com.example.uol.pagamento.domain.handler.PagamentoHandlerInicial;
+import com.example.uol.pagamento.domain.handler.PagamentoHandler;
 import com.example.uol.pagamento.domain.model.Cobranca;
 import com.example.uol.pagamento.domain.repository.CobrancaRepository;
 import com.example.uol.pagamento.domain.service.interfaces.ProcessaPagamentoService;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class ProcessaPagamentoServiceImpl implements ProcessaPagamentoService {
 
 
-    PagamentoHandlerInicial pagamentoHandlerInicial;
+    PagamentoHandler pagamentoHandlerInicial;
     CobrancaRepository cobrancaRepository;
     SQSService sqsService;
 
@@ -30,7 +30,7 @@ public class ProcessaPagamentoServiceImpl implements ProcessaPagamentoService {
 
     @Override
     public List<ItemPagamentoDTO> processarPagamentos(Map<Cobranca, ItemPagamentoDTO> pagamentoCobranca) {
-        PagamentoHandlerInicial pagamentoHandlerInicial = new PagamentoHandlerInicial(cobrancaRepository, sqsService);
+        PagamentoHandler pagamentoHandlerInicial = new PagamentoHandler(cobrancaRepository, sqsService);
 
         List<ItemPagamentoDTO> itemPagamentoDTOS = pagamentoCobranca.entrySet().parallelStream()
                 .map(item -> pagamentoHandlerInicial.handle(item.getKey(), item.getValue()))

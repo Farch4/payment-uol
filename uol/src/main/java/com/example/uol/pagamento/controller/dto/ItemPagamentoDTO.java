@@ -42,6 +42,10 @@ public class ItemPagamentoDTO  implements Serializable {
         if(this.valor==null)this.valor = valor;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return "ItemPagamentoDTO{" +

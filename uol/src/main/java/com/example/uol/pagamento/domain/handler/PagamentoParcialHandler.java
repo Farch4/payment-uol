@@ -1,17 +1,16 @@
 package com.example.uol.pagamento.domain.handler;
 
 
+import com.example.uol.pagamento.constants.SqsQueueConstants;
 import com.example.uol.pagamento.controller.dto.ItemPagamentoDTO;
 import com.example.uol.pagamento.domain.model.Cobranca;
 import com.example.uol.pagamento.domain.model.enums.StatusPagamento;
 import com.example.uol.pagamento.domain.repository.CobrancaRepository;
 import com.example.uol.pagamento.service.impl.SQSService;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
-@Component
-public final class PagamentoParcialHandler extends PagamentoHandler {
+public final class PagamentoParcialHandler extends PagamentoHandlerAbs {
 
     PagamentoParcialHandler(CobrancaRepository cobrancaRepository,
                             SQSService sqsService) {
@@ -26,7 +25,7 @@ public final class PagamentoParcialHandler extends PagamentoHandler {
 
             pagamentoDTO.setStatus(StatusPagamento.PARCIAL.toString());
 
-            sqsService.sendMessageToPartialQueue(pagamentoDTO);
+            sqsService.sendMessage(pagamentoDTO, SqsQueueConstants.PAGAMENTOS_PARCIAIS_QUEUE);
 
             return pagamentoDTO;
         }

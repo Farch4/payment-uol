@@ -1,12 +1,13 @@
 package com.example.uol.pagamento.domain.handler;
 
+import com.example.uol.pagamento.constants.SqsQueueConstants;
 import com.example.uol.pagamento.controller.dto.ItemPagamentoDTO;
 import com.example.uol.pagamento.domain.model.Cobranca;
 import com.example.uol.pagamento.domain.model.enums.StatusPagamento;
 import com.example.uol.pagamento.domain.repository.CobrancaRepository;
 import com.example.uol.pagamento.service.impl.SQSService;
 
-public final class PagamentoTotalHandler extends PagamentoHandler{
+public final class PagamentoTotalHandler extends PagamentoHandlerAbs {
 
 
     PagamentoTotalHandler(CobrancaRepository cobrancaRepository,
@@ -23,7 +24,7 @@ public final class PagamentoTotalHandler extends PagamentoHandler{
 
             pagamentoDTO.setStatus(StatusPagamento.TOTAL.toString());
 
-            sqsService.sendMessageTotalQueue(pagamentoDTO);
+            sqsService.sendMessage(pagamentoDTO, SqsQueueConstants.PAGAMENTOS_TOTAIS_QUEUE);
 
             return pagamentoDTO;
         }

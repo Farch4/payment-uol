@@ -1,36 +1,35 @@
 package com.example.uol.pagamento.domain.handler;
 
+import com.example.uol.pagamento.constants.SqsQueueConstants;
 import com.example.uol.pagamento.controller.dto.ItemPagamentoDTO;
 import com.example.uol.pagamento.domain.model.Cobranca;
 import com.example.uol.pagamento.domain.model.enums.StatusPagamento;
 import com.example.uol.pagamento.domain.repository.CobrancaRepository;
 import com.example.uol.pagamento.service.impl.SQSService;
 
-import java.math.BigDecimal;
 
-abstract sealed class PagamentoHandler permits PagamentoTotalHandler,
-        PagamentoParcialHandler, PagamentoHandlerInicial, NenhumPagamentoHandler{
+public final class PagamentoHandler extends PagamentoHandlerAbs {
 
-    protected PagamentoHandler nextHandler;
-    protected SQSService sqsService;
-    protected CobrancaRepository cobrancaRepository;
-
-    PagamentoHandler(PagamentoHandler nextHandler,
-                            CobrancaRepository cobrancaRepository,
+    public PagamentoHandler(CobrancaRepository cobrancaRepository,
                             SQSService sqsService) {
-        this.nextHandler=nextHandler;
-        this.sqsService = sqsService;
-        this.cobrancaRepository = cobrancaRepository;
+        super(new PagamentoTotalHandler(cobrancaRepository, sqsService),
+                cobrancaRepository, sqsService);
     }
 
-    PagamentoHandler() {
-    }
+    @Override
+    public ItemPagamentoDTO handle(Cobranca cobranca, ItemPagamentoDTO pagamentoDTO){
 
-    public abstract ItemPagamentoDTO handle(Cobranca cobranca, ItemPagamentoDTO pagamentoDTO);
+        if(pagamentoDTO.getValor().compareTo(cobranca.getValor()) > 0){
 
-    protected void changeAndSaveCobranca(StatusPagamento status, Cobranca cobranca, BigDecimal value){
-        cobranca.receivePayment(value);
-        cobranca.setStatus(status);
-        this.cobrancaRepository.save(cobranca);
+            changeAndSaveCobranca(StatusPagamento.EXCEDENTE, cobranca, pagamentoDTO.getValor());
+
+            pagamentoDTO.setStatus(cobranca.getStatus().toString());
+            sqsService.sendMessage(pagamentoDTO, SqsQueueConstants.PAGAMENTOS_EXCEDENTES_QUEUE);
+
+            return pagamentoDTO;
+        }
+
+        return nextHandler.handle(cobranca, pagamentoDTO);
+
     }
 }
